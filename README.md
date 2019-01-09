@@ -1,2 +1,2 @@
 # gmod-rotating-third-person
-Rotating Third Person Camera Control for Garry's Mod
+Third Person Rotating Camera for Garry's Mod
