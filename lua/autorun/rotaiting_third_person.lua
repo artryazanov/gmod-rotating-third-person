@@ -3,28 +3,34 @@ if CLIENT then
 	local cameraOrigin
 	local cameraAngles
 	local cameraFOV
-	local playerAngle
+	local playerAngles
 
 	local VAR_CAMERA_FORWARD = "rotating_third_person_camera_forward"
 	local VAR_CAMERA_RIGHT = "rotating_third_person_camera_right"
 	local VAR_CAMERA_UP = "rotating_third_person_camera_up"
+	local VAR_CAMERA_FOV_CHANGE_SPEED = "rotating_third_person_camera_fov_change_speed"
 	local VAR_CAMERA_CROUCHING_UP = "rotating_third_person_camera_crouching_up"
 	local VAR_PLAYER_ROTATION_SPEED = "rotating_third_person_player_rotation_speed"
 
 	CreateClientConVar( VAR_CAMERA_FORWARD, "50", false, false )
 	CreateClientConVar( VAR_CAMERA_RIGHT, "20", false, false )
 	CreateClientConVar( VAR_CAMERA_UP, "-10", false, false )
+	CreateClientConVar( VAR_CAMERA_FOV_CHANGE_SPEED, "1", false, false )
 	CreateClientConVar( VAR_CAMERA_CROUCHING_UP, "14", false, false )
 	CreateClientConVar( VAR_PLAYER_ROTATION_SPEED, "3", false, false )
 
 	hook.Add( "ShouldDrawLocalPlayer", "RotatingThirdPerson.ShouldDrawLocalPlayer", function( ply )
+
 		return true
+
 	end )
 
 	hook.Add( "HUDShouldDraw", "RotatingThirdPerson.HUDShouldDraw", function( name )
+
 		if name == "CHudCrosshair" then
 			return false
 		end
+
 	end )
 
 	hook.Add( "HUDPaint", "RotatingThirdPerson.HUDPaint", function()
@@ -51,8 +57,6 @@ if CLIENT then
 
 	local function UpdateCameraAngles( x, y )
 
-		local ply = LocalPlayer()
-
 		local xDirection
 		if x < 0 then
 			xDirection = 1
@@ -72,29 +76,31 @@ if CLIENT then
 		end
 
 		if y ~= 0 then
+
 			cameraAngles.pitch = cameraAngles.pitch + yDirection * ( math.abs( y ) / ScrH() * cameraFOV )
 			cameraAngles.pitch = math.min(cameraAngles.pitch, 90)
 			cameraAngles.pitch = math.max(cameraAngles.pitch, -90)
+
 		end
 
 	end
 
 	local function Xor( a, b )
+
 		if ( a or b ) and ( not a or not b ) then
 			return true
 		else
 			return false
 		end
+
 	end
 
-	local function UpdatePlayerAngleAndPlayerWalking( cmd )
+	local function UpdatePlayerAngles()
 
 		local ply = LocalPlayer()
 
 		if input.IsMouseDown( MOUSE_RIGHT ) then
-
-			playerAngle = Angle( cameraAngles )
-
+			playerAngles = Angle( cameraAngles )
 		elseif ( Xor( ply:KeyDown( IN_FORWARD ), ply:KeyDownLast( IN_FORWARD ) ) )
 				or ( Xor( ply:KeyDown( IN_BACK ), ply:KeyDownLast( IN_BACK ) ) )
 				or ( Xor( ply:KeyDown( IN_MOVERIGHT ), ply:KeyDownLast( IN_MOVERIGHT ) ) )
@@ -102,29 +108,38 @@ if CLIENT then
 		then
 
 			if ply:KeyDown( IN_FORWARD ) then
-				playerAngle = cameraAngles:Forward():Angle()
+
+				playerAngles = cameraAngles:Forward():Angle()
 				if ply:KeyDown( IN_MOVERIGHT ) then
-					playerAngle.yaw = playerAngle.yaw - 45
+					playerAngles.yaw = playerAngles.yaw - 45
 				elseif ply:KeyDown( IN_MOVELEFT ) then
-					playerAngle.yaw = playerAngle.yaw + 45
+					playerAngles.yaw = playerAngles.yaw + 45
 				end
+
 			elseif ply:KeyDown( IN_BACK ) then
-				playerAngle = ( cameraAngles:Forward() * -1 ):Angle()
+
+				playerAngles = ( cameraAngles:Forward() * -1 ):Angle()
 				if ply:KeyDown( IN_MOVERIGHT ) then
-					playerAngle.yaw = playerAngle.yaw + 45
+					playerAngles.yaw = playerAngles.yaw + 45
 				elseif ply:KeyDown( IN_MOVELEFT ) then
-					playerAngle.yaw = playerAngle.yaw - 45
+					playerAngles.yaw = playerAngles.yaw - 45
 				end
+
 			elseif ply:KeyDown( IN_MOVERIGHT ) then
-				playerAngle = cameraAngles:Right():Angle()
+				playerAngles = cameraAngles:Right():Angle()
 			elseif ply:KeyDown( IN_MOVELEFT ) then
-				playerAngle = ( cameraAngles:Right() * -1 ):Angle()
+				playerAngles = ( cameraAngles:Right() * -1 ):Angle()
 			end
 
-			cmd:SetForwardMove( 1000 )
-			cmd:SetSideMove( 0 )
+		end
 
-		elseif ply:KeyDown( IN_FORWARD ) or ply:KeyDown( IN_BACK ) or ply:KeyDown( IN_MOVERIGHT ) or ply:KeyDown( IN_MOVELEFT ) then
+	end
+
+	local function UpdatePlayerMove( cmd )
+
+		local ply = LocalPlayer()
+
+		if ply:KeyDown( IN_FORWARD ) or ply:KeyDown( IN_BACK ) or ply:KeyDown( IN_MOVERIGHT ) or ply:KeyDown( IN_MOVELEFT ) then
 
 			cmd:SetForwardMove( 1000 )
 			cmd:SetSideMove( 0 )
@@ -133,19 +148,27 @@ if CLIENT then
 
 	end
 
-	hook.Add( "InputMouseApply", "RotatingThirdPerson.InputMouseApply", function( cmd, x, y, ang )
-
-		UpdateCameraAngles( x, y )
-		UpdatePlayerAngleAndPlayerWalking( cmd )
+	local function RotatePlayer( cmd, ang )
 
 		local rotationSpeed = GetConVar( VAR_PLAYER_ROTATION_SPEED ):GetInt()
-		ang.yaw = math.ApproachAngle(ang.yaw, playerAngle.yaw, rotationSpeed)
-		ang.pitch = math.ApproachAngle(ang.pitch, playerAngle.pitch, rotationSpeed)
-		ang.row = math.ApproachAngle(ang.row, playerAngle.row, rotationSpeed)
+		ang.yaw = math.ApproachAngle(ang.yaw, playerAngles.yaw, rotationSpeed)
+		ang.pitch = math.ApproachAngle(ang.pitch, playerAngles.pitch, rotationSpeed)
+		ang.row = math.ApproachAngle(ang.row, playerAngles.row, rotationSpeed)
 
 		cmd:SetViewAngles( ang )
 
+	end
+
+	hook.Add( "InputMouseApply", "RotatingThirdPerson.InputMouseApply", function( cmd, x, y, ang )
+
+		UpdateCameraAngles( x, y )
+		UpdatePlayerAngles()
+
+		RotatePlayer( cmd, ang )
+		UpdatePlayerMove( cmd )
+
 		return true
+
 	end )
 
 	local function UpdateCameraOrigin( ply, origin )
@@ -182,10 +205,11 @@ if CLIENT then
 			plyFOV = plyFOV - 5
 		end
 
+		changeSpeed = GetConVar( VAR_CAMERA_FOV_CHANGE_SPEED ):GetInt()
 		if cameraFOV > plyFOV then
-			cameraFOV = cameraFOV - 1
+			cameraFOV = cameraFOV - changeSpeed
 		elseif cameraFOV < plyFOV then
-			cameraFOV = cameraFOV + 1
+			cameraFOV = cameraFOV + changeSpeed
 		end
 
 	end
@@ -204,8 +228,8 @@ if CLIENT then
 			cameraFOV = fov
 		end
 
-		if playerAngle == nil then
-			playerAngle = Angle( angles )
+		if playerAngles == nil then
+			playerAngles = Angle( angles )
 		end
 
 	end
@@ -214,8 +238,10 @@ if CLIENT then
 
 		InitParameters( origin, angles, fov )
 		if IsValid( ply ) then
+
 			UpdateCameraOrigin( ply, origin )
 			UpdateCameraFOV( ply )
+
 		end
 
 		return {
