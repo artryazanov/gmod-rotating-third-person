@@ -1,6 +1,8 @@
 if CLIENT then
 
-	local cameraAngle
+	local cameraOrigin
+	local cameraAngles
+	local cameraFOV
 	local playerAngle
 
 	local VAR_CAMERA_FORWARD = "rotating_third_person_camera_forward"
@@ -47,7 +49,7 @@ if CLIENT then
 
 	end )
 
-	local function UpdateCameraAngle( x, y )
+	local function UpdateCameraAngles( x, y )
 
 		local ply = LocalPlayer()
 
@@ -59,7 +61,7 @@ if CLIENT then
 		end
 
 		if x ~= 0 then
-			cameraAngle.yaw = cameraAngle.yaw + xDirection * ( math.abs( x ) / ScrW() * ply:GetFOV() )
+			cameraAngles.yaw = cameraAngles.yaw + xDirection * ( math.abs( x ) / ScrW() * cameraFOV )
 		end
 
 		local yDirection
@@ -70,9 +72,9 @@ if CLIENT then
 		end
 
 		if y ~= 0 then
-			cameraAngle.pitch = cameraAngle.pitch + yDirection * ( math.abs( y ) / ScrH() * ply:GetFOV() )
-			cameraAngle.pitch = math.min(cameraAngle.pitch, 90)
-			cameraAngle.pitch = math.max(cameraAngle.pitch, -90)
+			cameraAngles.pitch = cameraAngles.pitch + yDirection * ( math.abs( y ) / ScrH() * cameraFOV )
+			cameraAngles.pitch = math.min(cameraAngles.pitch, 90)
+			cameraAngles.pitch = math.max(cameraAngles.pitch, -90)
 		end
 
 	end
@@ -91,7 +93,7 @@ if CLIENT then
 
 		if input.IsMouseDown( MOUSE_RIGHT ) then
 
-			playerAngle = cameraAngle
+			playerAngle = Angle( cameraAngles )
 
 		elseif ( Xor( ply:KeyDown( IN_FORWARD ), ply:KeyDownLast( IN_FORWARD ) ) )
 				or ( Xor( ply:KeyDown( IN_BACK ), ply:KeyDownLast( IN_BACK ) ) )
@@ -100,23 +102,23 @@ if CLIENT then
 		then
 
 			if ply:KeyDown( IN_FORWARD ) then
-				playerAngle = cameraAngle:Forward():Angle()
+				playerAngle = cameraAngles:Forward():Angle()
 				if ply:KeyDown( IN_MOVERIGHT ) then
 					playerAngle.yaw = playerAngle.yaw - 45
 				elseif ply:KeyDown( IN_MOVELEFT ) then
 					playerAngle.yaw = playerAngle.yaw + 45
 				end
 			elseif ply:KeyDown( IN_BACK ) then
-				playerAngle = ( cameraAngle:Forward() * -1 ):Angle()
+				playerAngle = ( cameraAngles:Forward() * -1 ):Angle()
 				if ply:KeyDown( IN_MOVERIGHT ) then
 					playerAngle.yaw = playerAngle.yaw + 45
 				elseif ply:KeyDown( IN_MOVELEFT ) then
 					playerAngle.yaw = playerAngle.yaw - 45
 				end
 			elseif ply:KeyDown( IN_MOVERIGHT ) then
-				playerAngle = cameraAngle:Right():Angle()
+				playerAngle = cameraAngles:Right():Angle()
 			elseif ply:KeyDown( IN_MOVELEFT ) then
-				playerAngle = ( cameraAngle:Right() * -1 ):Angle()
+				playerAngle = ( cameraAngles:Right() * -1 ):Angle()
 			end
 
 			cmd:SetForwardMove( 1000 )
@@ -133,7 +135,7 @@ if CLIENT then
 
 	hook.Add( "InputMouseApply", "RotatingThirdPerson.InputMouseApply", function( cmd, x, y, ang )
 
-		UpdateCameraAngle( x, y )
+		UpdateCameraAngles( x, y )
 		UpdatePlayerAngleAndPlayerWalking( cmd )
 
 		local rotationSpeed = GetConVar( VAR_PLAYER_ROTATION_SPEED ):GetInt()
@@ -146,9 +148,7 @@ if CLIENT then
 		return true
 	end )
 
-	local function ApplyCollisionToCameraPosition( pos )
-
-		local ply = LocalPlayer()
+	local function UpdateCameraOrigin( ply, origin )
 
 		local cameraForward = GetConVar( VAR_CAMERA_FORWARD ):GetInt()
 		local cameraRight = GetConVar( VAR_CAMERA_RIGHT ):GetInt()
@@ -161,43 +161,69 @@ if CLIENT then
 		end
 
 		local traceData = {}
-		traceData.start = pos
-		traceData.endpos = traceData.start + cameraAngle:Forward() * -cameraForward
-		traceData.endpos = traceData.endpos + cameraAngle:Right() * cameraRight
-		traceData.endpos = traceData.endpos + cameraAngle:Up() * cameraUp
+		traceData.start = origin
+		traceData.endpos = traceData.start + cameraAngles:Forward() * -cameraForward
+		traceData.endpos = traceData.endpos + cameraAngles:Right() * cameraRight
+		traceData.endpos = traceData.endpos + cameraAngles:Up() * cameraUp
 		traceData.filter = ply
 
 		local trace = util.TraceLine( traceData )
-		pos = trace.HitPos
+		cameraOrigin = trace.HitPos
 		if trace.Fraction < 1.0 then
-			pos = pos + trace.HitNormal * 5
+			cameraOrigin = cameraOrigin + trace.HitNormal * 5
 		end
 
-		return pos
 	end
 
-	hook.Add( "CalcView", "RotatingThirdPerson.CalcView", function( ply, pos, angles, fov )
+	local function UpdateCameraFOV( ply )
 
-		if IsValid( ply ) then
-
-			if cameraAngle == nil then
-				cameraAngle = angles
-			end
-
-			if playerAngle == nil then
-				playerAngle = angles
-			end
-
-			pos = ApplyCollisionToCameraPosition( pos )
-
-			local view = {
-				origin = pos,
-				angles = cameraAngle,
-				fov = fov
-			}
-
-			return view
+		local plyFOV = ply:GetFOV()
+		if input.IsMouseDown( MOUSE_RIGHT ) then
+			plyFOV = plyFOV - 5
 		end
+
+		if cameraFOV > plyFOV then
+			cameraFOV = cameraFOV - 1
+		elseif cameraFOV < plyFOV then
+			cameraFOV = cameraFOV + 1
+		end
+
+	end
+
+	local function InitParameters( origin, angles, fov )
+
+		if cameraOrigin == nil then
+			cameraOrigin = Vector( origin )
+		end
+
+		if cameraAngles == nil then
+			cameraAngles = Angle( angles )
+		end
+
+		if cameraFOV == nil then
+			cameraFOV = fov
+		end
+
+		if playerAngle == nil then
+			playerAngle = Angle( angles )
+		end
+
+	end
+
+	hook.Add( "CalcView", "RotatingThirdPerson.CalcView", function( ply, origin, angles, fov )
+
+		InitParameters( origin, angles, fov )
+		if IsValid( ply ) then
+			UpdateCameraOrigin( ply, origin )
+			UpdateCameraFOV( ply )
+		end
+
+		return {
+			origin = cameraOrigin,
+			angles = cameraAngles,
+			fov = cameraFOV
+		}
+
 	end )
 
 end
