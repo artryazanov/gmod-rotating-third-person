@@ -5,6 +5,7 @@ if CLIENT then
 	local cameraFOV
 	local playerAngles
 
+	local VAR_MOD_ENABLED = "rotating_third_person_mod_enabled"
 	local VAR_CAMERA_FORWARD = "rotating_third_person_camera_forward"
 	local VAR_CAMERA_RIGHT = "rotating_third_person_camera_right"
 	local VAR_CAMERA_UP = "rotating_third_person_camera_up"
@@ -12,48 +13,13 @@ if CLIENT then
 	local VAR_CAMERA_CROUCHING_UP = "rotating_third_person_camera_crouching_up"
 	local VAR_PLAYER_ROTATION_SPEED = "rotating_third_person_player_rotation_speed"
 
+	CreateClientConVar( VAR_MOD_ENABLED, "1", false, false )
 	CreateClientConVar( VAR_CAMERA_FORWARD, "50", false, false )
 	CreateClientConVar( VAR_CAMERA_RIGHT, "20", false, false )
 	CreateClientConVar( VAR_CAMERA_UP, "-10", false, false )
 	CreateClientConVar( VAR_CAMERA_FOV_CHANGE_SPEED, "1", false, false )
 	CreateClientConVar( VAR_CAMERA_CROUCHING_UP, "14", false, false )
 	CreateClientConVar( VAR_PLAYER_ROTATION_SPEED, "3", false, false )
-
-	hook.Add( "ShouldDrawLocalPlayer", "RotatingThirdPerson.ShouldDrawLocalPlayer", function( ply )
-
-		return true
-
-	end )
-
-	hook.Add( "HUDShouldDraw", "RotatingThirdPerson.HUDShouldDraw", function( name )
-
-		if name == "CHudCrosshair" then
-			return false
-		end
-
-	end )
-
-	hook.Add( "HUDPaint", "RotatingThirdPerson.HUDPaint", function()
-
-		local ply = LocalPlayer()
-
-		local traceData = {}
-		traceData.start = ply:GetShootPos()
-		traceData.endpos = traceData.start + ply:GetAimVector() * 9000
-		traceData.filter = ply
-
-		local trace = util.TraceLine( traceData )
-		local pos = trace.HitPos:ToScreen()
-
-		surface.SetDrawColor(255, 230, 0, 240)
-
-		surface.DrawLine(pos.x - 5, pos.y, pos.x - 8, pos.y)
-		surface.DrawLine(pos.x + 5, pos.y, pos.x + 8, pos.y)
-
-		surface.DrawLine(pos.x, pos.y - 5, pos.x, pos.y - 8)
-		surface.DrawLine(pos.x, pos.y + 5, pos.x, pos.y + 8)
-
-	end )
 
 	local function UpdateCameraAngles( x, y )
 
@@ -159,18 +125,6 @@ if CLIENT then
 
 	end
 
-	hook.Add( "InputMouseApply", "RotatingThirdPerson.InputMouseApply", function( cmd, x, y, ang )
-
-		UpdateCameraAngles( x, y )
-		UpdatePlayerAngles()
-
-		RotatePlayer( cmd, ang )
-		UpdatePlayerMove( cmd )
-
-		return true
-
-	end )
-
 	local function UpdateCameraOrigin( ply, origin )
 
 		local cameraForward = GetConVar( VAR_CAMERA_FORWARD ):GetInt()
@@ -234,21 +188,97 @@ if CLIENT then
 
 	end
 
-	hook.Add( "CalcView", "RotatingThirdPerson.CalcView", function( ply, origin, angles, fov )
+	local function IsModEnabled()
 
-		InitParameters( origin, angles, fov )
-		if IsValid( ply ) then
+		return GetConVar( VAR_MOD_ENABLED ):GetBool()
 
-			UpdateCameraOrigin( ply, origin )
-			UpdateCameraFOV( ply )
+	end
+
+	local function DrawCustomCrossHair()
+
+		local ply = LocalPlayer()
+
+		local traceData = {}
+		traceData.start = ply:GetShootPos()
+		traceData.endpos = traceData.start + ply:GetAimVector() * 9000
+		traceData.filter = ply
+
+		local trace = util.TraceLine( traceData )
+		local pos = trace.HitPos:ToScreen()
+
+		surface.SetDrawColor(255, 230, 0, 240)
+
+		surface.DrawLine(pos.x - 5, pos.y, pos.x - 8, pos.y)
+		surface.DrawLine(pos.x + 5, pos.y, pos.x + 8, pos.y)
+
+		surface.DrawLine(pos.x, pos.y - 5, pos.x, pos.y - 8)
+		surface.DrawLine(pos.x, pos.y + 5, pos.x, pos.y + 8)
+
+	end
+
+	hook.Add( "ShouldDrawLocalPlayer", "RotatingThirdPerson.ShouldDrawLocalPlayer", function( ply )
+
+		if ( IsModEnabled() ) then
+			return true
+		end
+
+	end )
+
+	hook.Add( "HUDShouldDraw", "RotatingThirdPerson.HUDShouldDraw", function( name )
+
+		if ( IsModEnabled() ) then
+
+			if name == "CHudCrosshair" then
+				return false
+			end
 
 		end
 
-		return {
-			origin = cameraOrigin,
-			angles = cameraAngles,
-			fov = cameraFOV
-		}
+	end )
+
+	hook.Add( "HUDPaint", "RotatingThirdPerson.HUDPaint", function()
+
+		if ( IsModEnabled() ) then
+			DrawCustomCrossHair()
+		end
+
+	end )
+
+	hook.Add( "InputMouseApply", "RotatingThirdPerson.InputMouseApply", function( cmd, x, y, ang )
+
+		if ( IsModEnabled() ) then
+
+			UpdateCameraAngles( x, y )
+			UpdatePlayerAngles()
+
+			RotatePlayer( cmd, ang )
+			UpdatePlayerMove( cmd )
+
+			return true
+
+		end
+
+	end )
+
+	hook.Add( "CalcView", "RotatingThirdPerson.CalcView", function( ply, origin, angles, fov )
+
+		if ( IsModEnabled() ) then
+
+			InitParameters( origin, angles, fov )
+			if IsValid( ply ) then
+
+				UpdateCameraOrigin( ply, origin )
+				UpdateCameraFOV( ply )
+
+			end
+
+			return {
+				origin = cameraOrigin,
+				angles = cameraAngles,
+				fov = cameraFOV
+			}
+
+		end
 
 	end )
 
