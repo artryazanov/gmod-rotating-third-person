@@ -9,7 +9,15 @@ if CLIENT then
 	local playerAngles
 	local isRightMouseWasPressed = false
 
-	local function UpdateCameraAngles( x, y )
+	local function isPlayerMoves()
+
+		local ply = LocalPlayer()
+		local isMoves = ply:KeyDown( IN_FORWARD ) or ply:KeyDown( IN_BACK ) or ply:KeyDown( IN_MOVERIGHT ) or ply:KeyDown( IN_MOVELEFT )
+		return isMoves
+
+	end
+
+	local function calcDeltaYawByX( x )
 
 		local xDirection
 		if x < 0 then
@@ -18,9 +26,16 @@ if CLIENT then
 			xDirection = -1
 		end
 
+		local deltaYaw = 0
 		if x ~= 0 then
-			cameraAngles.yaw = cameraAngles.yaw + xDirection * ( math.abs( x ) / ScrW() * cameraFOV )
+			deltaYaw = xDirection * ( math.abs( x ) / ScrW() * cameraFOV )
 		end
+
+		return deltaYaw
+
+	end
+
+	local function calcDeltaPitchByY( y )
 
 		local yDirection
 		if y < 0 then
@@ -29,13 +44,22 @@ if CLIENT then
 			yDirection = 1
 		end
 
+		local deltaPitch = 0
 		if y ~= 0 then
-
-			cameraAngles.pitch = cameraAngles.pitch + yDirection * ( math.abs( y ) / ScrH() * cameraFOV )
-			cameraAngles.pitch = math.min(cameraAngles.pitch, 90)
-			cameraAngles.pitch = math.max(cameraAngles.pitch, -90)
-
+			deltaPitch = yDirection * ( math.abs( y ) / ScrH() * cameraFOV )
 		end
+
+
+		return deltaPitch
+
+	end
+
+	local function UpdateCameraAngles( x, y )
+
+		cameraAngles.yaw = cameraAngles.yaw + calcDeltaYawByX( x )
+		cameraAngles.pitch = cameraAngles.pitch + calcDeltaPitchByY( y )
+		cameraAngles.pitch = math.min(cameraAngles.pitch, 89)
+		cameraAngles.pitch = math.max(cameraAngles.pitch, -89)
 
 	end
 
@@ -49,9 +73,13 @@ if CLIENT then
 
 	end
 
-	local function UpdatePlayerAngles()
+	local function UpdatePlayerAngles( x )
 
 		local ply = LocalPlayer()
+
+		if isPlayerMoves() then
+			playerAngles.yaw = playerAngles.yaw + calcDeltaYawByX( x )
+		end
 
 		if input.IsMouseDown( MOUSE_RIGHT ) then
 
@@ -97,10 +125,7 @@ if CLIENT then
 
 	local function UpdatePlayerMove( cmd )
 
-		local ply = LocalPlayer()
-
-		if not input.IsMouseDown( MOUSE_RIGHT )
-			and (ply:KeyDown( IN_FORWARD ) or ply:KeyDown( IN_BACK ) or ply:KeyDown( IN_MOVERIGHT ) or ply:KeyDown( IN_MOVELEFT )) then
+		if not input.IsMouseDown( MOUSE_RIGHT ) and isPlayerMoves() then
 
 			cmd:SetForwardMove( 1000 )
 			cmd:SetSideMove( 0 )
@@ -248,7 +273,7 @@ if CLIENT then
 		if ( IsAddonEnabled() ) then
 
 			UpdateCameraAngles( x, y )
-			UpdatePlayerAngles()
+			UpdatePlayerAngles( x )
 
 			RotatePlayer( cmd, ang )
 			UpdatePlayerMove( cmd )
