@@ -1,25 +1,13 @@
 if CLIENT then
 
+	include( "includes/rotating_third_person_config.lua" )
+	include( "includes/rotating_third_person_editor.lua" )
+
 	local cameraOrigin
 	local cameraAngles
 	local cameraFOV
 	local playerAngles
-
-	local VAR_MOD_ENABLED = "rotating_third_person_mod_enabled"
-	local VAR_CAMERA_FORWARD = "rotating_third_person_camera_forward"
-	local VAR_CAMERA_RIGHT = "rotating_third_person_camera_right"
-	local VAR_CAMERA_UP = "rotating_third_person_camera_up"
-	local VAR_CAMERA_FOV_CHANGE_SPEED = "rotating_third_person_camera_fov_change_speed"
-	local VAR_CAMERA_CROUCHING_UP = "rotating_third_person_camera_crouching_up"
-	local VAR_PLAYER_ROTATION_SPEED = "rotating_third_person_player_rotation_speed"
-
-	CreateClientConVar( VAR_MOD_ENABLED, "1", false, false )
-	CreateClientConVar( VAR_CAMERA_FORWARD, "50", false, false )
-	CreateClientConVar( VAR_CAMERA_RIGHT, "20", false, false )
-	CreateClientConVar( VAR_CAMERA_UP, "-10", false, false )
-	CreateClientConVar( VAR_CAMERA_FOV_CHANGE_SPEED, "1", false, false )
-	CreateClientConVar( VAR_CAMERA_CROUCHING_UP, "14", false, false )
-	CreateClientConVar( VAR_PLAYER_ROTATION_SPEED, "3", false, false )
+	local isRightMouseWasPressed = false
 
 	local function UpdateCameraAngles( x, y )
 
@@ -66,12 +54,18 @@ if CLIENT then
 		local ply = LocalPlayer()
 
 		if input.IsMouseDown( MOUSE_RIGHT ) then
+
 			playerAngles = Angle( cameraAngles )
-		elseif ( Xor( ply:KeyDown( IN_FORWARD ), ply:KeyDownLast( IN_FORWARD ) ) )
+			isRightMouseWasPressed = true
+
+		elseif isRightMouseWasPressed
+				or ( Xor( ply:KeyDown( IN_FORWARD ), ply:KeyDownLast( IN_FORWARD ) ) )
 				or ( Xor( ply:KeyDown( IN_BACK ), ply:KeyDownLast( IN_BACK ) ) )
 				or ( Xor( ply:KeyDown( IN_MOVERIGHT ), ply:KeyDownLast( IN_MOVERIGHT ) ) )
 				or ( Xor( ply:KeyDown( IN_MOVELEFT ), ply:KeyDownLast( IN_MOVELEFT ) ) )
 		then
+
+			isRightMouseWasPressed = false
 
 			if ply:KeyDown( IN_FORWARD ) then
 
@@ -105,7 +99,8 @@ if CLIENT then
 
 		local ply = LocalPlayer()
 
-		if ply:KeyDown( IN_FORWARD ) or ply:KeyDown( IN_BACK ) or ply:KeyDown( IN_MOVERIGHT ) or ply:KeyDown( IN_MOVELEFT ) then
+		if not input.IsMouseDown( MOUSE_RIGHT )
+			and (ply:KeyDown( IN_FORWARD ) or ply:KeyDown( IN_BACK ) or ply:KeyDown( IN_MOVERIGHT ) or ply:KeyDown( IN_MOVELEFT )) then
 
 			cmd:SetForwardMove( 1000 )
 			cmd:SetSideMove( 0 )
@@ -116,7 +111,7 @@ if CLIENT then
 
 	local function RotatePlayer( cmd, ang )
 
-		local rotationSpeed = GetConVar( VAR_PLAYER_ROTATION_SPEED ):GetInt()
+		local rotationSpeed = GetConVar( RTP_VAR_PLAYER_ROTATION_SPEED ):GetInt()
 		ang.yaw = math.ApproachAngle(ang.yaw, playerAngles.yaw, rotationSpeed)
 		ang.pitch = math.ApproachAngle(ang.pitch, playerAngles.pitch, rotationSpeed)
 		ang.row = math.ApproachAngle(ang.row, playerAngles.row, rotationSpeed)
@@ -127,14 +122,12 @@ if CLIENT then
 
 	local function UpdateCameraOrigin( ply, origin )
 
-		local cameraForward = GetConVar( VAR_CAMERA_FORWARD ):GetInt()
-		local cameraRight = GetConVar( VAR_CAMERA_RIGHT ):GetInt()
+		local cameraForward = GetConVar( RTP_VAR_CAMERA_FORWARD ):GetInt()
+		local cameraRight = GetConVar( RTP_VAR_CAMERA_RIGHT ):GetInt()
 
-		local cameraUp
+		cameraUp = GetConVar( RTP_VAR_CAMERA_UP ):GetInt()
 		if (ply:Crouching()) then
-			cameraUp = GetConVar( VAR_CAMERA_CROUCHING_UP ):GetInt()
-		else
-			cameraUp = GetConVar( VAR_CAMERA_UP ):GetInt()
+			cameraUp = cameraUp + 20
 		end
 
 		local traceData = {}
@@ -152,14 +145,14 @@ if CLIENT then
 
 	end
 
-	local function UpdateCameraFOV( ply )
+	local function UpdateCameraFOV()
 
-		local plyFOV = ply:GetFOV()
+		local plyFOV = GetConVar( RTP_VAR_CAMERA_FOV ):GetInt()
 		if input.IsMouseDown( MOUSE_RIGHT ) then
 			plyFOV = plyFOV - 5
 		end
 
-		changeSpeed = GetConVar( VAR_CAMERA_FOV_CHANGE_SPEED ):GetInt()
+		changeSpeed = GetConVar( RTP_VAR_CAMERA_FOV_CHANGE_SPEED ):GetInt()
 		if cameraFOV > plyFOV then
 			cameraFOV = cameraFOV - changeSpeed
 		elseif cameraFOV < plyFOV then
@@ -190,7 +183,13 @@ if CLIENT then
 
 	local function IsModEnabled()
 
-		return GetConVar( VAR_MOD_ENABLED ):GetBool()
+		local inVehicle = false
+		local ply = LocalPlayer()
+		if IsValid( ply ) then
+			inVehicle = ply:InVehicle()
+		end
+
+		return not inVehicle and GetConVar( RTP_VAR_MOD_ENABLED ):GetBool()
 
 	end
 
@@ -268,7 +267,7 @@ if CLIENT then
 			if IsValid( ply ) then
 
 				UpdateCameraOrigin( ply, origin )
-				UpdateCameraFOV( ply )
+				UpdateCameraFOV()
 
 			end
 
