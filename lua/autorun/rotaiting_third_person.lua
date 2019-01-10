@@ -181,7 +181,7 @@ if CLIENT then
 
 	end
 
-	local function IsModEnabled()
+	local function IsAddonEnabled()
 
 		local inVehicle = false
 		local ply = LocalPlayer()
@@ -189,7 +189,7 @@ if CLIENT then
 			inVehicle = ply:InVehicle()
 		end
 
-		return not inVehicle and GetConVar( RTP_VAR_MOD_ENABLED ):GetBool()
+		return not inVehicle and GetConVar( RTP_VAR_ADDON_ENABLED ):GetBool()
 
 	end
 
@@ -217,7 +217,7 @@ if CLIENT then
 
 	hook.Add( "ShouldDrawLocalPlayer", "RotatingThirdPerson.ShouldDrawLocalPlayer", function( ply )
 
-		if ( IsModEnabled() ) then
+		if ( IsAddonEnabled() ) then
 			return true
 		end
 
@@ -225,7 +225,7 @@ if CLIENT then
 
 	hook.Add( "HUDShouldDraw", "RotatingThirdPerson.HUDShouldDraw", function( name )
 
-		if ( IsModEnabled() ) then
+		if ( IsAddonEnabled() ) then
 
 			if name == "CHudCrosshair" then
 				return false
@@ -237,7 +237,7 @@ if CLIENT then
 
 	hook.Add( "HUDPaint", "RotatingThirdPerson.HUDPaint", function()
 
-		if ( IsModEnabled() ) then
+		if ( IsAddonEnabled() ) then
 			DrawCustomCrossHair()
 		end
 
@@ -245,7 +245,7 @@ if CLIENT then
 
 	hook.Add( "InputMouseApply", "RotatingThirdPerson.InputMouseApply", function( cmd, x, y, ang )
 
-		if ( IsModEnabled() ) then
+		if ( IsAddonEnabled() ) then
 
 			UpdateCameraAngles( x, y )
 			UpdatePlayerAngles()
@@ -261,7 +261,7 @@ if CLIENT then
 
 	hook.Add( "CalcView", "RotatingThirdPerson.CalcView", function( ply, origin, angles, fov )
 
-		if ( IsModEnabled() ) then
+		if ( IsAddonEnabled() ) then
 
 			InitParameters( origin, angles, fov )
 			if IsValid( ply ) then

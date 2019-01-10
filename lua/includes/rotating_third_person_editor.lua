@@ -3,7 +3,7 @@ local PANEL_HEIGHT = 260
 local PANEL_TITLE = "Third Person Rotating Camera"
 
 local Editor = {}
-Editor.EnableToggle = GetConVar( RTP_VAR_MOD_ENABLED ):GetBool() or false
+Editor.EnableToggle = GetConVar( RTP_VAR_ADDON_ENABLED ):GetBool() or false
 
 local function BoolToInt( bool )
 
@@ -76,7 +76,7 @@ local function DrawEnableButton()
     Editor.PANEL.EnableThird.DoClick = function()
 
         Editor.EnableToggle = not Editor.EnableToggle
-        RunConsoleCommand( RTP_VAR_MOD_ENABLED , BoolToInt( Editor.EnableToggle ) )
+        RunConsoleCommand( RTP_VAR_ADDON_ENABLED , BoolToInt( Editor.EnableToggle ) )
 
         UpdateEnableButton()
 
@@ -237,7 +237,7 @@ local function DrawResetButton()
 
     Editor.PANEL.Reset.DoClick = function()
 
-        RunConsoleCommand( RTP_VAR_MOD_ENABLED , RTP_DEFAULT_MOD_ENABLED )
+        RunConsoleCommand( RTP_VAR_ADDON_ENABLED , RTP_DEFAULT_ADDON_ENABLED )
 
         RunConsoleCommand( RTP_VAR_CAMERA_FORWARD , RTP_DEFAULT_CAMERA_FORWARD )
         Editor.PANEL.CamDistanceLb:SetValue( RTP_DEFAULT_CAMERA_FORWARD )
@@ -277,7 +277,7 @@ end
 
 list.Set( "DesktopWindows", "RotatingThirdPerson", {
     title = PANEL_TITLE,
-    icon = "icon16/arrow_rotate_clockwise.png",
+    icon = "icon64/rotating_third_person.png",
     width = PANEL_WIDTH,
     height = PANEL_HEIGHT,
     onewindow = true,

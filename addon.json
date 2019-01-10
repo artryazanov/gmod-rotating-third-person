@@ -1,0 +1,12 @@
+{
+  "title"	:	"Third Person Rotating Camera",
+  "type"	:	"tool",
+  "tags"	:	["scenic", "roleplay"],
+  "ignore"	:
+  [
+    ".idea/*",
+    ".git/*",
+    ".gitignore",
+    "materials/icon/*"
+  ]
+}
