@@ -91,6 +91,8 @@ local function addScratchLabel( text, offset )
     label:SetText( text )
     label:SizeToContents()
 
+    return label
+
 end
 
 local function addScratchTextEntry( value, offset )
@@ -119,99 +121,71 @@ local function addNumberScratch( min, max, value, offset )
 
 end
 
-local function DrawDistanceSettings( min, max, offset )
+local function DrawScratchBlock( labelText, min, max, variable, yOffset )
 
-    addScratchLabel( "Camera Distance: ", offset )
+    local value = GetConVar( variable ):GetInt()
 
-    local value = GetConVar( RTP_VAR_CAMERA_FORWARD ):GetInt()
+    local label = addScratchLabel( labelText, yOffset )
+    local textEntry = addScratchTextEntry( value, yOffset )
+    local numberScratch = addNumberScratch( min, max, value, yOffset )
 
-    Editor.PANEL.CamDistanceLb = addScratchTextEntry( value, offset )
-    Editor.PANEL.CamDistanceLb.OnTextChanged  = function()
+    textEntry.OnTextChanged  = function()
 
-        Editor.PANEL.CamDistancePrf:SetValue( Editor.PANEL.CamDistanceLb:GetValue() )
-        Editor.PANEL.CamDistancePrf.OnValueChanged()
+        local newValue = textEntry:GetValue()
+        numberScratch:SetValue( newValue )
+        RunConsoleCommand( variable, newValue )
+
+    end
+
+    numberScratch.OnValueChanged  = function()
+
+        local newValue = numberScratch:GetTextValue()
+        textEntry:SetValue( newValue )
+        RunConsoleCommand( variable, newValue )
 
     end
 
-    Editor.PANEL.CamDistancePrf = addNumberScratch( min, max, value, offset )
-    Editor.PANEL.CamDistancePrf.OnValueChanged  = function()
-
-        Editor.PANEL.CamDistanceLb:SetValue( Editor.PANEL.CamDistancePrf:GetTextValue() )
-        RunConsoleCommand( RTP_VAR_CAMERA_FORWARD ,Editor.PANEL.CamDistancePrf:GetTextValue() )
-
-    end
+    return {
+        label = label,
+        textEntry = textEntry,
+        numberScratch = numberScratch
+    }
 
 end
 
-local function DrawUpSettings( min, max, offset )
+local function DrawDistanceSettings( offset )
 
-    addScratchLabel( "Camera Up: ", offset )
-
-    local value = GetConVar( RTP_VAR_CAMERA_UP ):GetInt()
-
-    Editor.PANEL.CamUpLb = addScratchTextEntry( value, offset )
-    Editor.PANEL.CamUpLb.OnTextChanged  = function()
-
-        Editor.PANEL.CamUpPrf:SetValue( Editor.PANEL.CamUpLb:GetValue() )
-        Editor.PANEL.CamUpPrf.OnValueChanged()
-
-    end
-
-    Editor.PANEL.CamUpPrf = addNumberScratch( min, max, value, offset )
-    Editor.PANEL.CamUpPrf.OnValueChanged  = function()
-
-        Editor.PANEL.CamUpLb:SetValue( Editor.PANEL.CamUpPrf:GetTextValue() )
-        RunConsoleCommand( RTP_VAR_CAMERA_UP ,Editor.PANEL.CamUpPrf:GetTextValue() )
-
-    end
+    local labelText = "Camera Distance: "
+    local min = 0
+    local max = 1000
+    Editor.PANEL.CamDistance = DrawScratchBlock( labelText, min, max, RTP_VAR_CAMERA_FORWARD, offset )
 
 end
 
-local function DrawRightSettings( min, max, offset )
+local function DrawUpSettings( offset )
 
-    addScratchLabel( "Camera Right: ", offset )
-
-    local value = GetConVar( RTP_VAR_CAMERA_RIGHT ):GetInt()
-
-    Editor.PANEL.CamRightLb = addScratchTextEntry( value, offset )
-    Editor.PANEL.CamRightLb.OnTextChanged  = function()
-
-        Editor.PANEL.CamRightPrf:SetValue( Editor.PANEL.CamRightLb:GetValue() )
-        Editor.PANEL.CamRightPrf.OnValueChanged()
-
-    end
-
-    Editor.PANEL.CamRightPrf = addNumberScratch( min, max, value, offset )
-    Editor.PANEL.CamRightPrf.OnValueChanged  = function()
-
-        Editor.PANEL.CamRightLb:SetValue( Editor.PANEL.CamRightPrf:GetTextValue() )
-        RunConsoleCommand( RTP_VAR_CAMERA_RIGHT ,Editor.PANEL.CamRightPrf:GetTextValue() )
-
-    end
+    local labelText = "Camera Up: "
+    local min = -50
+    local max = 50
+    Editor.PANEL.CamUp = DrawScratchBlock( labelText, min, max, RTP_VAR_CAMERA_UP, offset )
 
 end
 
-local function DrawFovSettings( min, max, offset )
+local function DrawRightSettings( offset )
 
-    addScratchLabel( "Camera FOV: ", offset )
+    local labelText = "Camera Right: "
+    local min = -100
+    local max = 100
+    Editor.PANEL.CamRight = DrawScratchBlock( labelText, min, max, RTP_VAR_CAMERA_RIGHT, offset )
 
-    local value = GetConVar( RTP_VAR_CAMERA_FOV ):GetInt()
+end
 
-    Editor.PANEL.CamFovLb = addScratchTextEntry( value, offset )
-    Editor.PANEL.CamFovLb.OnTextChanged  = function()
+local function DrawFovSettings( offset )
 
-        Editor.PANEL.CamFovPrf:SetValue( Editor.PANEL.CamFovLb:GetValue() )
-        Editor.PANEL.CamFovPrf.OnValueChanged()
-
-    end
-
-    Editor.PANEL.CamFovPrf = addNumberScratch( min, max, value, offset )
-    Editor.PANEL.CamFovPrf.OnValueChanged  = function()
-
-        Editor.PANEL.CamFovLb:SetValue( Editor.PANEL.CamFovPrf:GetTextValue() )
-        RunConsoleCommand( RTP_VAR_CAMERA_FOV ,Editor.PANEL.CamFovPrf:GetTextValue() )
-
-    end
+    local labelText = "Camera FOV: "
+    local min = 30
+    local max = 110
+    Editor.PANEL.CamFov = DrawScratchBlock( labelText, min, max, RTP_VAR_CAMERA_FOV, offset )
 
 end
 
@@ -231,20 +205,20 @@ local function DrawResetButton()
         RunConsoleCommand( RTP_VAR_ADDON_ENABLED , RTP_DEFAULT_ADDON_ENABLED )
 
         RunConsoleCommand( RTP_VAR_CAMERA_FORWARD , RTP_DEFAULT_CAMERA_FORWARD )
-        Editor.PANEL.CamDistanceLb:SetValue( RTP_DEFAULT_CAMERA_FORWARD )
-        Editor.PANEL.CamDistanceLb.OnTextChanged()
+        Editor.PANEL.CamDistance.textEntry:SetValue( RTP_DEFAULT_CAMERA_FORWARD )
+        Editor.PANEL.CamDistance.textEntry.OnTextChanged()
 
         RunConsoleCommand( RTP_VAR_CAMERA_RIGHT , RTP_DEFAULT_CAMERA_RIGHT )
-        Editor.PANEL.CamRightLb:SetValue( RTP_DEFAULT_CAMERA_RIGHT )
-        Editor.PANEL.CamRightLb.OnTextChanged()
+        Editor.PANEL.CamRight.textEntry:SetValue( RTP_DEFAULT_CAMERA_RIGHT )
+        Editor.PANEL.CamRight.textEntry.OnTextChanged()
 
         RunConsoleCommand( RTP_VAR_CAMERA_UP , RTP_DEFAULT_CAMERA_UP )
-        Editor.PANEL.CamUpLb:SetValue( RTP_DEFAULT_CAMERA_UP )
-        Editor.PANEL.CamUpLb.OnTextChanged()
+        Editor.PANEL.CamUp.textEntry:SetValue( RTP_DEFAULT_CAMERA_UP )
+        Editor.PANEL.CamUp.textEntry.OnTextChanged()
 
         RunConsoleCommand( RTP_VAR_CAMERA_FOV , RTP_DEFAULT_CAMERA_FOV )
-        Editor.PANEL.CamFovLb:SetValue( RTP_DEFAULT_CAMERA_FOV )
-        Editor.PANEL.CamFovLb.OnTextChanged()
+        Editor.PANEL.CamFov.textEntry:SetValue( RTP_DEFAULT_CAMERA_FOV )
+        Editor.PANEL.CamFov.textEntry.OnTextChanged()
 
         RunConsoleCommand( RTP_VAR_CAMERA_FOV_CHANGE_SPEED , RTP_DEFAULT_CAMERA_FOV_CHANGE_SPEED )
         RunConsoleCommand( RTP_VAR_PLAYER_ROTATION_SPEED , RTP_DEFAULT_PLAYER_ROTATION_SPEED )
@@ -258,10 +232,10 @@ local function DrawEditor( window )
     DrawPanel( window )
     DrawSheet()
     DrawEnableButton()
-    DrawDistanceSettings( 0 , 1000, 40 )
-    DrawUpSettings( -50, 50, 70 )
-    DrawRightSettings( -100, 100, 100 )
-    DrawFovSettings( 30, 110, 130 )
+    DrawDistanceSettings( 40 )
+    DrawUpSettings( 70 )
+    DrawRightSettings( 100 )
+    DrawFovSettings( 130 )
     DrawResetButton()
 
 end
