@@ -189,40 +189,44 @@ local function DrawFovSettings( offset )
 
 end
 
+local function ResetSettings()
+
+    RunConsoleCommand( RTP_VAR_ADDON_ENABLED , RTP_DEFAULT_ADDON_ENABLED )
+
+    RunConsoleCommand( RTP_VAR_CAMERA_FORWARD , RTP_DEFAULT_CAMERA_FORWARD )
+    Editor.PANEL.CamDistance.textEntry:SetValue( RTP_DEFAULT_CAMERA_FORWARD )
+    Editor.PANEL.CamDistance.textEntry.OnTextChanged()
+
+    RunConsoleCommand( RTP_VAR_CAMERA_RIGHT , RTP_DEFAULT_CAMERA_RIGHT )
+    Editor.PANEL.CamRight.textEntry:SetValue( RTP_DEFAULT_CAMERA_RIGHT )
+    Editor.PANEL.CamRight.textEntry.OnTextChanged()
+
+    RunConsoleCommand( RTP_VAR_CAMERA_UP , RTP_DEFAULT_CAMERA_UP )
+    Editor.PANEL.CamUp.textEntry:SetValue( RTP_DEFAULT_CAMERA_UP )
+    Editor.PANEL.CamUp.textEntry.OnTextChanged()
+
+    RunConsoleCommand( RTP_VAR_CAMERA_FOV , RTP_DEFAULT_CAMERA_FOV )
+    Editor.PANEL.CamFov.textEntry:SetValue( RTP_DEFAULT_CAMERA_FOV )
+    Editor.PANEL.CamFov.textEntry.OnTextChanged()
+
+    RunConsoleCommand( RTP_VAR_CAMERA_FOV_CHANGE_SPEED , RTP_DEFAULT_CAMERA_FOV_CHANGE_SPEED )
+    RunConsoleCommand( RTP_VAR_PLAYER_ROTATION_SPEED , RTP_DEFAULT_PLAYER_ROTATION_SPEED )
+
+end
+
 local function DrawResetButton()
 
-    Editor.PANEL.Reset= Editor.PANEL.Settings:Add( "DButton" )
-    Editor.PANEL.Reset:SizeToContents()
+    Editor.PANEL.ResetButton= Editor.PANEL.Settings:Add( "DButton" )
+    Editor.PANEL.ResetButton:SizeToContents()
 
-    Editor.PANEL.Reset:SetPos( 10, 166 )
-    Editor.PANEL.Reset:SetSize( 250, 20 )
+    Editor.PANEL.ResetButton:SetPos( 10, 166 )
+    Editor.PANEL.ResetButton:SetSize( 250, 20 )
 
-    Editor.PANEL.Reset:SetText( "Reset Settings" )
-    Editor.PANEL.Reset:SetTextColor( Color( 150, 0, 0) )
+    Editor.PANEL.ResetButton:SetText( "Reset Settings" )
+    Editor.PANEL.ResetButton:SetTextColor( Color( 150, 0, 0) )
 
-    Editor.PANEL.Reset.DoClick = function()
-
-        RunConsoleCommand( RTP_VAR_ADDON_ENABLED , RTP_DEFAULT_ADDON_ENABLED )
-
-        RunConsoleCommand( RTP_VAR_CAMERA_FORWARD , RTP_DEFAULT_CAMERA_FORWARD )
-        Editor.PANEL.CamDistance.textEntry:SetValue( RTP_DEFAULT_CAMERA_FORWARD )
-        Editor.PANEL.CamDistance.textEntry.OnTextChanged()
-
-        RunConsoleCommand( RTP_VAR_CAMERA_RIGHT , RTP_DEFAULT_CAMERA_RIGHT )
-        Editor.PANEL.CamRight.textEntry:SetValue( RTP_DEFAULT_CAMERA_RIGHT )
-        Editor.PANEL.CamRight.textEntry.OnTextChanged()
-
-        RunConsoleCommand( RTP_VAR_CAMERA_UP , RTP_DEFAULT_CAMERA_UP )
-        Editor.PANEL.CamUp.textEntry:SetValue( RTP_DEFAULT_CAMERA_UP )
-        Editor.PANEL.CamUp.textEntry.OnTextChanged()
-
-        RunConsoleCommand( RTP_VAR_CAMERA_FOV , RTP_DEFAULT_CAMERA_FOV )
-        Editor.PANEL.CamFov.textEntry:SetValue( RTP_DEFAULT_CAMERA_FOV )
-        Editor.PANEL.CamFov.textEntry.OnTextChanged()
-
-        RunConsoleCommand( RTP_VAR_CAMERA_FOV_CHANGE_SPEED , RTP_DEFAULT_CAMERA_FOV_CHANGE_SPEED )
-        RunConsoleCommand( RTP_VAR_PLAYER_ROTATION_SPEED , RTP_DEFAULT_PLAYER_ROTATION_SPEED )
-
+    Editor.PANEL.ResetButton.DoClick = function()
+        ResetSettings()
     end
 
 end

@@ -9,7 +9,7 @@ if CLIENT then
 	local playerAngles
 	local isRightMouseWasPressed = false
 
-	local function isPlayerMoves()
+	local function IsPlayerMoves()
 
 		local ply = LocalPlayer()
 		local isMoves = ply:KeyDown( IN_FORWARD ) or ply:KeyDown( IN_BACK ) or ply:KeyDown( IN_MOVERIGHT ) or ply:KeyDown( IN_MOVELEFT )
@@ -17,7 +17,7 @@ if CLIENT then
 
 	end
 
-	local function calcDeltaYawByX( x )
+	local function CalcDeltaYawByX( x )
 
 		local xDirection
 		if x < 0 then
@@ -35,7 +35,7 @@ if CLIENT then
 
 	end
 
-	local function calcDeltaPitchByY( y )
+	local function CalcDeltaPitchByY( y )
 
 		local yDirection
 		if y < 0 then
@@ -56,8 +56,8 @@ if CLIENT then
 
 	local function UpdateCameraAngles( x, y )
 
-		cameraAngles.yaw = cameraAngles.yaw + calcDeltaYawByX( x )
-		cameraAngles.pitch = cameraAngles.pitch + calcDeltaPitchByY( y )
+		cameraAngles.yaw = cameraAngles.yaw + CalcDeltaYawByX( x )
+		cameraAngles.pitch = cameraAngles.pitch + CalcDeltaPitchByY( y )
 		cameraAngles.pitch = math.min(cameraAngles.pitch, 89)
 		cameraAngles.pitch = math.max(cameraAngles.pitch, -89)
 
@@ -77,8 +77,8 @@ if CLIENT then
 
 		local ply = LocalPlayer()
 
-		if isPlayerMoves() then
-			playerAngles.yaw = playerAngles.yaw + calcDeltaYawByX( x )
+		if IsPlayerMoves() then
+			playerAngles.yaw = playerAngles.yaw + CalcDeltaYawByX( x )
 		end
 
 		if input.IsMouseDown( MOUSE_RIGHT ) then
@@ -125,7 +125,7 @@ if CLIENT then
 
 	local function UpdatePlayerMove( cmd )
 
-		if not input.IsMouseDown( MOUSE_RIGHT ) and isPlayerMoves() then
+		if not input.IsMouseDown( MOUSE_RIGHT ) and IsPlayerMoves() then
 
 			cmd:SetForwardMove( 1000 )
 			cmd:SetSideMove( 0 )
