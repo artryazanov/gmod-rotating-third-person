@@ -1,9 +1,8 @@
 local PANEL_WIDTH = 300
-local PANEL_HEIGHT = 260
+local PANEL_HEIGHT = 340
 local PANEL_TITLE = "Third Person Rotating Camera"
 
 local Editor = {}
-Editor.EnableToggle = GetConVar( RTP_VAR_ADDON_ENABLED ):GetBool() or false
 
 local function BoolToInt( bool )
 
@@ -15,7 +14,19 @@ local function BoolToInt( bool )
 
 end
 
+local function getNewElementYOffset()
+
+    local newOffset = Editor.newElementYOffset
+    Editor.newElementYOffset = newOffset + 30
+
+    return newOffset
+
+end
+
 local function DrawPanel( window )
+
+    Editor.enableToggle = GetConVar( RTP_VAR_ADDON_ENABLED ):GetBool() or false
+    Editor.newElementYOffset = 0
 
     if Editor.PANEL ~= nil then
         Editor.PANEL:Remove()
@@ -50,10 +61,7 @@ end
 
 local function UpdateEnableButton()
 
-    Editor.PANEL.EnableThird:SetPos( 10, 6 )
-    Editor.PANEL.EnableThird:SetSize( 250, 20 )
-
-    if Editor.EnableToggle then
+    if Editor.enableToggle then
 
         Editor.PANEL.EnableThird:SetText( "Disable Third Person" )
         Editor.PANEL.EnableThird:SetTextColor( Color( 150, 0, 0) )
@@ -71,12 +79,14 @@ local function DrawEnableButton()
 
     Editor.PANEL.EnableThird = Editor.PANEL.Settings:Add( "DButton" )
     Editor.PANEL.EnableThird:SizeToContents()
+    Editor.PANEL.EnableThird:SetPos( 10, getNewElementYOffset() + 3 )
+    Editor.PANEL.EnableThird:SetSize( 250, 20 )
 
     UpdateEnableButton()
     Editor.PANEL.EnableThird.DoClick = function()
 
-        Editor.EnableToggle = not Editor.EnableToggle
-        RunConsoleCommand( RTP_VAR_ADDON_ENABLED , BoolToInt( Editor.EnableToggle ) )
+        Editor.enableToggle = not Editor.enableToggle
+        RunConsoleCommand( RTP_VAR_ADDON_ENABLED , BoolToInt( Editor.enableToggle ) )
 
         UpdateEnableButton()
 
@@ -121,7 +131,9 @@ local function addNumberScratch( min, max, value, offset )
 
 end
 
-local function DrawScratchBlock( labelText, min, max, variable, yOffset )
+local function DrawScratchBlock( labelText, min, max, variable )
+
+    local yOffset = getNewElementYOffset()
 
     local value = GetConVar( variable ):GetInt()
 
@@ -153,39 +165,39 @@ local function DrawScratchBlock( labelText, min, max, variable, yOffset )
 
 end
 
-local function DrawDistanceSettings( offset )
+local function DrawDistanceSettings()
 
     local labelText = "Camera Distance: "
     local min = 0
     local max = 1000
-    Editor.PANEL.CamDistance = DrawScratchBlock( labelText, min, max, RTP_VAR_CAMERA_FORWARD, offset )
+    Editor.PANEL.CamDistance = DrawScratchBlock( labelText, min, max, RTP_VAR_CAMERA_FORWARD )
 
 end
 
-local function DrawUpSettings( offset )
+local function DrawUpSettings()
 
     local labelText = "Camera Up: "
     local min = -50
     local max = 50
-    Editor.PANEL.CamUp = DrawScratchBlock( labelText, min, max, RTP_VAR_CAMERA_UP, offset )
+    Editor.PANEL.CamUp = DrawScratchBlock( labelText, min, max, RTP_VAR_CAMERA_UP )
 
 end
 
-local function DrawRightSettings( offset )
+local function DrawRightSettings()
 
     local labelText = "Camera Right: "
     local min = -100
     local max = 100
-    Editor.PANEL.CamRight = DrawScratchBlock( labelText, min, max, RTP_VAR_CAMERA_RIGHT, offset )
+    Editor.PANEL.CamRight = DrawScratchBlock( labelText, min, max, RTP_VAR_CAMERA_RIGHT )
 
 end
 
-local function DrawFovSettings( offset )
+local function DrawFovSettings()
 
     local labelText = "Camera FOV: "
     local min = 30
     local max = 110
-    Editor.PANEL.CamFov = DrawScratchBlock( labelText, min, max, RTP_VAR_CAMERA_FOV, offset )
+    Editor.PANEL.CamFov = DrawScratchBlock( labelText, min, max, RTP_VAR_CAMERA_FOV )
 
 end
 
@@ -210,7 +222,17 @@ local function ResetSettings()
     Editor.PANEL.CamFov.textEntry.OnTextChanged()
 
     RunConsoleCommand( RTP_VAR_CAMERA_FOV_CHANGE_SPEED , RTP_DEFAULT_CAMERA_FOV_CHANGE_SPEED )
+
+    RunConsoleCommand( RTP_VAR_CAMERA_DISABLE_ROTATION_WHEN_MOVE , RTP_DEFAULT_CAMERA_DISABLE_ROTATION_WHEN_MOVE )
+    Editor.PANEL.IsDisableCameraRotationWhenMove:SetValue( RTP_DEFAULT_CAMERA_DISABLE_ROTATION_WHEN_MOVE )
+
     RunConsoleCommand( RTP_VAR_PLAYER_ROTATION_SPEED , RTP_DEFAULT_PLAYER_ROTATION_SPEED )
+
+    RunConsoleCommand( RTP_VAR_CROSSHAIR_HIDDEN , RTP_DEFAULT_CROSSHAIR_HIDDEN )
+    Editor.PANEL.IsCrosshairHidden:SetValue( RTP_DEFAULT_CROSSHAIR_HIDDEN )
+
+    RunConsoleCommand( RTP_VAR_CROSSHAIR_TRACE_POSITION , RTP_DEFAULT_CROSSHAIR_TRACE_POSITION )
+    Editor.PANEL.IsTraceCrosshairPosition:SetValue( RTP_DEFAULT_CROSSHAIR_TRACE_POSITION )
 
 end
 
@@ -219,7 +241,7 @@ local function DrawResetButton()
     Editor.PANEL.ResetButton= Editor.PANEL.Settings:Add( "DButton" )
     Editor.PANEL.ResetButton:SizeToContents()
 
-    Editor.PANEL.ResetButton:SetPos( 10, 166 )
+    Editor.PANEL.ResetButton:SetPos( 10, getNewElementYOffset() + 3 )
     Editor.PANEL.ResetButton:SetSize( 250, 20 )
 
     Editor.PANEL.ResetButton:SetText( "Reset Settings" )
@@ -231,15 +253,43 @@ local function DrawResetButton()
 
 end
 
+local function DrawCheckBox( labelText, variable )
+
+    local checkBox = Editor.PANEL.Settings:Add( "DCheckBoxLabel" )
+    checkBox:SetPos( 8, getNewElementYOffset() + 6 )
+    checkBox:SetText( labelText )
+    checkBox:SetConVar( variable )
+    checkBox:SetValue( GetConVar( variable ):GetBool() )
+
+    return checkBox
+
+end
+
+local function DrawIsCrosshairHidden()
+    Editor.PANEL.IsCrosshairHidden = DrawCheckBox( "Hide crosshair", RTP_VAR_CROSSHAIR_HIDDEN )
+end
+
+local function DrawIsTraceCrosshairPosition()
+    Editor.PANEL.IsTraceCrosshairPosition = DrawCheckBox( "Trace crosshair position", RTP_VAR_CROSSHAIR_TRACE_POSITION )
+end
+
+local function DrawIsDisableCameraRotationWhenMove()
+    Editor.PANEL.IsDisableCameraRotationWhenMove = DrawCheckBox( "Disable camera rotation when move", RTP_VAR_CAMERA_DISABLE_ROTATION_WHEN_MOVE )
+end
+
 local function DrawEditor( window )
 
     DrawPanel( window )
     DrawSheet()
+
     DrawEnableButton()
-    DrawDistanceSettings( 40 )
-    DrawUpSettings( 70 )
-    DrawRightSettings( 100 )
-    DrawFovSettings( 130 )
+    DrawDistanceSettings()
+    DrawUpSettings()
+    DrawRightSettings()
+    DrawFovSettings()
+    DrawIsCrosshairHidden()
+    DrawIsTraceCrosshairPosition()
+    DrawIsDisableCameraRotationWhenMove()
     DrawResetButton()
 
 end

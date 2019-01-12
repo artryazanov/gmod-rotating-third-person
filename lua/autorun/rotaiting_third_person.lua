@@ -73,11 +73,15 @@ if CLIENT then
 
 	end
 
+	local function IsDisableRotationWhenMove()
+		return GetConVar( RTP_VAR_CAMERA_DISABLE_ROTATION_WHEN_MOVE ):GetBool()
+	end
+
 	local function UpdatePlayerAngles( x )
 
 		local ply = LocalPlayer()
 
-		if IsPlayerMoves() then
+		if IsPlayerMoves() and IsDisableRotationWhenMove() then
 			playerAngles.yaw = playerAngles.yaw + CalcDeltaYawByX( x )
 		end
 
@@ -206,19 +210,24 @@ if CLIENT then
 
 	end
 
-	local function IsAddonEnabled()
+	local function IsAddonActive()
 
-		local inVehicle = false
 		local ply = LocalPlayer()
+
+		local isEnabled = GetConVar( RTP_VAR_ADDON_ENABLED ):GetBool()
+		local alive = true
+		local inVehicle = false
+
 		if IsValid( ply ) then
 			inVehicle = ply:InVehicle()
+			alive = ply:Alive()
 		end
 
-		return not inVehicle and GetConVar( RTP_VAR_ADDON_ENABLED ):GetBool()
+		return isEnabled and alive and not inVehicle
 
 	end
 
-	local function DrawCustomCrossHair()
+	local function DrawTraceCrossHair()
 
 		local ply = LocalPlayer()
 
@@ -240,9 +249,21 @@ if CLIENT then
 
 	end
 
+	local function IsCrosshairHidden()
+		return GetConVar( RTP_VAR_CROSSHAIR_HIDDEN ):GetBool()
+	end
+
+	local function IsCrosshairVisible()
+		return not IsCrosshairHidden()
+	end
+
+	local function IsTraceCrosshairPosition()
+		return GetConVar( RTP_VAR_CROSSHAIR_TRACE_POSITION ):GetBool()
+	end
+
 	hook.Add( "ShouldDrawLocalPlayer", "RotatingThirdPerson.ShouldDrawLocalPlayer", function( ply )
 
-		if ( IsAddonEnabled() ) then
+		if ( IsAddonActive() ) then
 			return true
 		end
 
@@ -250,9 +271,9 @@ if CLIENT then
 
 	hook.Add( "HUDShouldDraw", "RotatingThirdPerson.HUDShouldDraw", function( name )
 
-		if ( IsAddonEnabled() ) then
+		if ( IsAddonActive() ) then
 
-			if name == "CHudCrosshair" then
+			if ( name == "CHudCrosshair" ) and ( IsCrosshairHidden() or IsTraceCrosshairPosition() ) then
 				return false
 			end
 
@@ -262,15 +283,15 @@ if CLIENT then
 
 	hook.Add( "HUDPaint", "RotatingThirdPerson.HUDPaint", function()
 
-		if ( IsAddonEnabled() ) then
-			DrawCustomCrossHair()
+		if ( IsAddonActive() and IsCrosshairVisible() and IsTraceCrosshairPosition() ) then
+			DrawTraceCrossHair()
 		end
 
 	end )
 
 	hook.Add( "InputMouseApply", "RotatingThirdPerson.InputMouseApply", function( cmd, x, y, ang )
 
-		if ( IsAddonEnabled() ) then
+		if ( IsAddonActive() ) then
 
 			UpdateCameraAngles( x, y )
 			UpdatePlayerAngles( x )
@@ -286,7 +307,7 @@ if CLIENT then
 
 	hook.Add( "CalcView", "RotatingThirdPerson.CalcView", function( ply, origin, angles, fov )
 
-		if ( IsAddonEnabled() ) then
+		if ( IsAddonActive() ) then
 
 			InitParameters( origin, angles, fov )
 			if IsValid( ply ) then
