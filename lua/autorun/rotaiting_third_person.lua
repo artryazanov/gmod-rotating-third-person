@@ -1,3 +1,10 @@
+if SERVER then
+
+	AddCSLuaFile( "includes/rotating_third_person_config.lua" )
+	AddCSLuaFile( "includes/rotating_third_person_editor.lua" )
+
+end
+
 if CLIENT then
 
 	include( "includes/rotating_third_person_config.lua" )
