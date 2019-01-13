@@ -86,7 +86,8 @@ if CLIENT then
 
 	local function IsAiming()
 
-		local isAiming = input.IsMouseDown( MOUSE_RIGHT )
+		local aimingButton = GetConVar( RTP_VAR_PLAYER_AIMING_BUTTON ):GetInt()
+		local isAiming = input.IsButtonDown( aimingButton )
 		return isAiming
 
 	end
@@ -143,7 +144,7 @@ if CLIENT then
 
 	local function UpdatePlayerMove( cmd )
 
-		if not input.IsMouseDown( MOUSE_RIGHT ) and IsPlayerMoves() then
+		if not IsAiming() and IsPlayerMoves() then
 
 			cmd:SetForwardMove( 1000 )
 			cmd:SetSideMove( 0 )
@@ -191,7 +192,7 @@ if CLIENT then
 	local function UpdateCameraFOV()
 
 		local plyFOV = GetConVar( RTP_VAR_CAMERA_FOV ):GetInt()
-		if input.IsMouseDown( MOUSE_RIGHT ) then
+		if IsAiming() then
 			plyFOV = plyFOV - 5
 		end
 

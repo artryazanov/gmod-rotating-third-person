@@ -1,6 +1,7 @@
 local PANEL_WIDTH = 300
-local PANEL_HEIGHT = 340
+local PANEL_HEIGHT = 370
 local PANEL_TITLE = "Third Person Rotating Camera"
+local ELEMENTS_HEIGHT = 30
 
 local Editor = {}
 
@@ -17,7 +18,7 @@ end
 local function getNewElementYOffset()
 
     local newOffset = Editor.newElementYOffset
-    Editor.newElementYOffset = newOffset + 30
+    Editor.newElementYOffset = newOffset + ELEMENTS_HEIGHT
 
     return newOffset
 
@@ -141,7 +142,7 @@ local function DrawScratchBlock( labelText, min, max, variable )
     local textEntry = addScratchTextEntry( value, yOffset )
     local numberScratch = addNumberScratch( min, max, value, yOffset )
 
-    textEntry.OnTextChanged  = function()
+    textEntry.OnTextChanged = function()
 
         local newValue = textEntry:GetValue()
         numberScratch:SetValue( newValue )
@@ -149,7 +150,7 @@ local function DrawScratchBlock( labelText, min, max, variable )
 
     end
 
-    numberScratch.OnValueChanged  = function()
+    numberScratch.OnValueChanged = function()
 
         local newValue = numberScratch:GetTextValue()
         textEntry:SetValue( newValue )
@@ -203,35 +204,38 @@ end
 
 local function ResetSettings()
 
-    RunConsoleCommand( RTP_VAR_ADDON_ENABLED , RTP_DEFAULT_ADDON_ENABLED )
+    RunConsoleCommand( RTP_VAR_ADDON_ENABLED, RTP_DEFAULT_ADDON_ENABLED )
 
-    RunConsoleCommand( RTP_VAR_CAMERA_FORWARD , RTP_DEFAULT_CAMERA_FORWARD )
+    RunConsoleCommand( RTP_VAR_CAMERA_FORWARD, RTP_DEFAULT_CAMERA_FORWARD )
     Editor.PANEL.CamDistance.textEntry:SetValue( RTP_DEFAULT_CAMERA_FORWARD )
     Editor.PANEL.CamDistance.textEntry.OnTextChanged()
 
-    RunConsoleCommand( RTP_VAR_CAMERA_RIGHT , RTP_DEFAULT_CAMERA_RIGHT )
+    RunConsoleCommand( RTP_VAR_CAMERA_RIGHT, RTP_DEFAULT_CAMERA_RIGHT )
     Editor.PANEL.CamRight.textEntry:SetValue( RTP_DEFAULT_CAMERA_RIGHT )
     Editor.PANEL.CamRight.textEntry.OnTextChanged()
 
-    RunConsoleCommand( RTP_VAR_CAMERA_UP , RTP_DEFAULT_CAMERA_UP )
+    RunConsoleCommand( RTP_VAR_CAMERA_UP, RTP_DEFAULT_CAMERA_UP )
     Editor.PANEL.CamUp.textEntry:SetValue( RTP_DEFAULT_CAMERA_UP )
     Editor.PANEL.CamUp.textEntry.OnTextChanged()
 
-    RunConsoleCommand( RTP_VAR_CAMERA_FOV , RTP_DEFAULT_CAMERA_FOV )
+    RunConsoleCommand( RTP_VAR_CAMERA_FOV, RTP_DEFAULT_CAMERA_FOV )
     Editor.PANEL.CamFov.textEntry:SetValue( RTP_DEFAULT_CAMERA_FOV )
     Editor.PANEL.CamFov.textEntry.OnTextChanged()
 
-    RunConsoleCommand( RTP_VAR_CAMERA_FOV_CHANGE_SPEED , RTP_DEFAULT_CAMERA_FOV_CHANGE_SPEED )
+    RunConsoleCommand( RTP_VAR_CAMERA_FOV_CHANGE_SPEED, RTP_DEFAULT_CAMERA_FOV_CHANGE_SPEED )
 
-    RunConsoleCommand( RTP_VAR_CAMERA_DISABLE_ROTATION_WHEN_MOVE , RTP_DEFAULT_CAMERA_DISABLE_ROTATION_WHEN_MOVE )
+    RunConsoleCommand( RTP_VAR_CAMERA_DISABLE_ROTATION_WHEN_MOVE, RTP_DEFAULT_CAMERA_DISABLE_ROTATION_WHEN_MOVE )
     Editor.PANEL.IsDisableCameraRotationWhenMove:SetValue( RTP_DEFAULT_CAMERA_DISABLE_ROTATION_WHEN_MOVE )
 
-    RunConsoleCommand( RTP_VAR_PLAYER_ROTATION_SPEED , RTP_DEFAULT_PLAYER_ROTATION_SPEED )
+    RunConsoleCommand( RTP_VAR_PLAYER_ROTATION_SPEED, RTP_DEFAULT_PLAYER_ROTATION_SPEED )
 
-    RunConsoleCommand( RTP_VAR_CROSSHAIR_HIDDEN_IF_NOT_AIMING , RTP_DEFAULT_CROSSHAIR_HIDDEN_IF_NOT_AIMING )
+    RunConsoleCommand( RTP_VAR_PLAYER_AIMING_BUTTON, RTP_DEFAULT_PLAYER_AIMING_BUTTON )
+    Editor.PANEL.AimingBinder:SetValue( RTP_DEFAULT_PLAYER_AIMING_BUTTON )
+
+    RunConsoleCommand( RTP_VAR_CROSSHAIR_HIDDEN_IF_NOT_AIMING, RTP_DEFAULT_CROSSHAIR_HIDDEN_IF_NOT_AIMING )
     Editor.PANEL.IsCrosshairHiddenIfNotAiming:SetValue( RTP_DEFAULT_CROSSHAIR_HIDDEN_IF_NOT_AIMING )
 
-    RunConsoleCommand( RTP_VAR_CROSSHAIR_TRACE_POSITION , RTP_DEFAULT_CROSSHAIR_TRACE_POSITION )
+    RunConsoleCommand( RTP_VAR_CROSSHAIR_TRACE_POSITION, RTP_DEFAULT_CROSSHAIR_TRACE_POSITION )
     Editor.PANEL.IsTraceCrosshairPosition:SetValue( RTP_DEFAULT_CROSSHAIR_TRACE_POSITION )
 
 end
@@ -277,6 +281,23 @@ local function DrawIsDisableCameraRotationWhenMove()
     Editor.PANEL.IsDisableCameraRotationWhenMove = DrawCheckBox( "Disable camera rotation when move", RTP_VAR_CAMERA_DISABLE_ROTATION_WHEN_MOVE )
 end
 
+local function DrawAimingBinder()
+
+    local offset = getNewElementYOffset()
+
+    local label = Editor.PANEL.Settings:Add( "DLabel" )
+    label:SetPos( 10, offset + 5 )
+    label:SetText( 'Aiming button: ' )
+    label:SizeToContents()
+
+    Editor.PANEL.AimingBinder = Editor.PANEL.Settings:Add( "DBinder" )
+    Editor.PANEL.AimingBinder:SetPos( 110, offset + 3 )
+    Editor.PANEL.AimingBinder:SetSize( 150, 20 )
+    Editor.PANEL.AimingBinder:SetConVar( RTP_VAR_PLAYER_AIMING_BUTTON )
+    Editor.PANEL.AimingBinder:SetValue( GetConVar( RTP_VAR_PLAYER_AIMING_BUTTON ):GetInt() )
+
+end
+
 local function DrawEditor( window )
 
     DrawPanel( window )
@@ -287,6 +308,7 @@ local function DrawEditor( window )
     DrawUpSettings()
     DrawRightSettings()
     DrawFovSettings()
+    DrawAimingBinder()
     DrawIsCrosshairHiddenIfNotAiming()
     DrawIsTraceCrosshairPosition()
     DrawIsDisableCameraRotationWhenMove()
