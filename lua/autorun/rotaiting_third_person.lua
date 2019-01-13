@@ -7,7 +7,7 @@ if CLIENT then
 	local cameraAngles
 	local cameraFOV
 	local playerAngles
-	local isRightMouseWasPressed = false
+	local isAimingWasPressed = false
 
 	local function IsPlayerMoves()
 
@@ -77,6 +77,13 @@ if CLIENT then
 		return GetConVar( RTP_VAR_CAMERA_DISABLE_ROTATION_WHEN_MOVE ):GetBool()
 	end
 
+	local function IsAiming()
+
+		local isAiming = input.IsMouseDown( MOUSE_RIGHT )
+		return isAiming
+
+	end
+
 	local function UpdatePlayerAngles( x )
 
 		local ply = LocalPlayer()
@@ -85,19 +92,19 @@ if CLIENT then
 			playerAngles.yaw = playerAngles.yaw + CalcDeltaYawByX( x )
 		end
 
-		if input.IsMouseDown( MOUSE_RIGHT ) then
+		if IsAiming() then
 
 			playerAngles = Angle( cameraAngles )
-			isRightMouseWasPressed = true
+			isAimingWasPressed = true
 
-		elseif isRightMouseWasPressed
+		elseif isAimingWasPressed
 				or ( Xor( ply:KeyDown( IN_FORWARD ), ply:KeyDownLast( IN_FORWARD ) ) )
 				or ( Xor( ply:KeyDown( IN_BACK ), ply:KeyDownLast( IN_BACK ) ) )
 				or ( Xor( ply:KeyDown( IN_MOVERIGHT ), ply:KeyDownLast( IN_MOVERIGHT ) ) )
 				or ( Xor( ply:KeyDown( IN_MOVELEFT ), ply:KeyDownLast( IN_MOVELEFT ) ) )
 		then
 
-			isRightMouseWasPressed = false
+			isAimingWasPressed = false
 
 			if ply:KeyDown( IN_FORWARD ) then
 
@@ -249,12 +256,12 @@ if CLIENT then
 
 	end
 
-	local function IsCrosshairHidden()
-		return GetConVar( RTP_VAR_CROSSHAIR_HIDDEN ):GetBool()
-	end
+	local function IsNeedDrawCrosshair()
 
-	local function IsCrosshairVisible()
-		return not IsCrosshairHidden()
+		local isHideCrosshair = GetConVar( RTP_VAR_CROSSHAIR_HIDDEN_IF_NOT_AIMING ):GetBool()
+		local isNeedDrawCrosshair = not isHideCrosshair or IsAiming()
+		return isNeedDrawCrosshair
+
 	end
 
 	local function IsTraceCrosshairPosition()
@@ -273,7 +280,7 @@ if CLIENT then
 
 		if ( IsAddonActive() ) then
 
-			if ( name == "CHudCrosshair" ) and ( IsCrosshairHidden() or IsTraceCrosshairPosition() ) then
+			if ( name == "CHudCrosshair" ) and ( not IsNeedDrawCrosshair() or IsTraceCrosshairPosition() ) then
 				return false
 			end
 
@@ -283,7 +290,7 @@ if CLIENT then
 
 	hook.Add( "HUDPaint", "RotatingThirdPerson.HUDPaint", function()
 
-		if ( IsAddonActive() and IsCrosshairVisible() and IsTraceCrosshairPosition() ) then
+		if ( IsAddonActive() and IsNeedDrawCrosshair() and IsTraceCrosshairPosition() ) then
 			DrawTraceCrossHair()
 		end
 

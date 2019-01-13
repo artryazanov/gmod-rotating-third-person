@@ -228,8 +228,8 @@ local function ResetSettings()
 
     RunConsoleCommand( RTP_VAR_PLAYER_ROTATION_SPEED , RTP_DEFAULT_PLAYER_ROTATION_SPEED )
 
-    RunConsoleCommand( RTP_VAR_CROSSHAIR_HIDDEN , RTP_DEFAULT_CROSSHAIR_HIDDEN )
-    Editor.PANEL.IsCrosshairHidden:SetValue( RTP_DEFAULT_CROSSHAIR_HIDDEN )
+    RunConsoleCommand( RTP_VAR_CROSSHAIR_HIDDEN_IF_NOT_AIMING , RTP_DEFAULT_CROSSHAIR_HIDDEN_IF_NOT_AIMING )
+    Editor.PANEL.IsCrosshairHiddenIfNotAiming:SetValue( RTP_DEFAULT_CROSSHAIR_HIDDEN_IF_NOT_AIMING )
 
     RunConsoleCommand( RTP_VAR_CROSSHAIR_TRACE_POSITION , RTP_DEFAULT_CROSSHAIR_TRACE_POSITION )
     Editor.PANEL.IsTraceCrosshairPosition:SetValue( RTP_DEFAULT_CROSSHAIR_TRACE_POSITION )
@@ -265,8 +265,8 @@ local function DrawCheckBox( labelText, variable )
 
 end
 
-local function DrawIsCrosshairHidden()
-    Editor.PANEL.IsCrosshairHidden = DrawCheckBox( "Hide crosshair", RTP_VAR_CROSSHAIR_HIDDEN )
+local function DrawIsCrosshairHiddenIfNotAiming()
+    Editor.PANEL.IsCrosshairHiddenIfNotAiming = DrawCheckBox( "Hide crosshair if not aiming", RTP_VAR_CROSSHAIR_HIDDEN_IF_NOT_AIMING )
 end
 
 local function DrawIsTraceCrosshairPosition()
@@ -287,7 +287,7 @@ local function DrawEditor( window )
     DrawUpSettings()
     DrawRightSettings()
     DrawFovSettings()
-    DrawIsCrosshairHidden()
+    DrawIsCrosshairHiddenIfNotAiming()
     DrawIsTraceCrosshairPosition()
     DrawIsDisableCameraRotationWhenMove()
     DrawResetButton()

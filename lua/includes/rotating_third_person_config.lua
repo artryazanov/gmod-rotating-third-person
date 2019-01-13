@@ -6,7 +6,7 @@ RTP_DEFAULT_CAMERA_FOV = "75"
 RTP_DEFAULT_CAMERA_FOV_CHANGE_SPEED = "1"
 RTP_DEFAULT_CAMERA_DISABLE_ROTATION_WHEN_MOVE = "1"
 RTP_DEFAULT_PLAYER_ROTATION_SPEED = "3"
-RTP_DEFAULT_CROSSHAIR_HIDDEN = "0"
+RTP_DEFAULT_CROSSHAIR_HIDDEN_IF_NOT_AIMING = "0"
 RTP_DEFAULT_CROSSHAIR_TRACE_POSITION = "0"
 
 RTP_VAR_ADDON_ENABLED = "rotating_third_person_addon_enabled"
@@ -17,7 +17,7 @@ RTP_VAR_CAMERA_FOV = "rotating_third_person_camera_fov"
 RTP_VAR_CAMERA_FOV_CHANGE_SPEED = "rotating_third_person_camera_fov_change_speed"
 RTP_VAR_CAMERA_DISABLE_ROTATION_WHEN_MOVE = "rotating_third_person_camera_disable_rotation_when_move"
 RTP_VAR_PLAYER_ROTATION_SPEED = "rotating_third_person_player_rotation_speed"
-RTP_VAR_CROSSHAIR_HIDDEN  = "rotating_third_person_crosshair_hidden"
+RTP_VAR_CROSSHAIR_HIDDEN_IF_NOT_AIMING  = "rotating_third_person_crosshair_hidden_if_not_aiming"
 RTP_VAR_CROSSHAIR_TRACE_POSITION = "rotating_third_person_crosshair_trace_position"
 
 CreateClientConVar( RTP_VAR_ADDON_ENABLED, RTP_DEFAULT_ADDON_ENABLED, true, false )
@@ -28,5 +28,5 @@ CreateClientConVar( RTP_VAR_CAMERA_FOV, RTP_DEFAULT_CAMERA_FOV, true, false )
 CreateClientConVar( RTP_VAR_CAMERA_FOV_CHANGE_SPEED, RTP_DEFAULT_CAMERA_FOV_CHANGE_SPEED, true, false )
 CreateClientConVar( RTP_VAR_CAMERA_DISABLE_ROTATION_WHEN_MOVE, RTP_DEFAULT_CAMERA_DISABLE_ROTATION_WHEN_MOVE, true, false )
 CreateClientConVar( RTP_VAR_PLAYER_ROTATION_SPEED, RTP_DEFAULT_PLAYER_ROTATION_SPEED, true, false )
-CreateClientConVar( RTP_VAR_CROSSHAIR_HIDDEN, RTP_DEFAULT_CROSSHAIR_HIDDEN, true, false )
+CreateClientConVar( RTP_VAR_CROSSHAIR_HIDDEN_IF_NOT_AIMING, RTP_DEFAULT_CROSSHAIR_HIDDEN_IF_NOT_AIMING, true, false )
 CreateClientConVar( RTP_VAR_CROSSHAIR_TRACE_POSITION, RTP_DEFAULT_CROSSHAIR_TRACE_POSITION, true, false )
